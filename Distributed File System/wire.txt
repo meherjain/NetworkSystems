@@ -1,0 +1,29 @@
+              Wire Transfer Details:-
+
+
+Beneficiary Name    :    Regents of the University of Colorado 
+
+Bank Name           :    Wells Fargo Bank
+
+Address             :    420 Montgomery St
+                      San Francisco , CA 94613
+
+
+Routing Number      :    121000248
+
+Bank Account Number :    1823472752
+
+SWIFT Code for Wires in Foreign Currency :      WFBIUS6WFFX
+
+SWIFT Code for Wires in US Dollars       :      WFBIUS6S
+
+
+Also, use these details while making payment:
+
+Name:   ----Meher Jain------
+Student ID:   --104921295--
+Department:   Electrical, Computer and Energy Engineering
+Major:   Electrical Engineering
+Department Contact:   Adam Sadoff (sadoff@colorado.edu) [(303)735-0490]
+
+** Receiving Department Name or Department contact must be included in the wire detail **

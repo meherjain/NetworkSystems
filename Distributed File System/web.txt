@@ -1,0 +1,23 @@
+
+HTTP SERVER (Server.c)
+
+Server.c : This programme handles multiple request from multiple clients using fork. Main function creates the sock binds it and listen in to it. It accepts the conncetions and creates child for handling clients. In child client_handle function is called which does all the error handling and processing on the client requests. This server also handles persistent connection and pipelining. It search for connection: keep-alive field in the request and starts a timer of 10 seconds, if no request comes from the client with in 10 seconds, the server closes the socket for that client. If connection: keep-alive field is not found in the request the server closes the connection immediately.
+
+Server takes the configuration from ws.config file. This file specifies the root directory, port no, extension and home page. 
+
+To run the server
+
+Compile : gcc -o server server.c
+Run : ./server
+
+
+HTTP SERVER (selectserver.c)
+
+This server handles multiple requests from one client and checks for persistent connection and do the pipelining. This server implements timer using select function. If the client request consist Connection: Keep-alive field the server starts the timer of 10 secs and if no request are comes from the client in 10 secs the server closes the connection. The server restarts the timer of 10 secs everytime newrequest comes from the client.
+
+
+
+To run the selectserver
+
+Compile : gcc -o selectserver select_server.c
+Run : ./select_server

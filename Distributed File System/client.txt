@@ -1,0 +1,246 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/syscall.h>
+#include <sys/socket.h>
+#include <string.h>
+#include <arpa/inet.h>
+//#include "md5_modcalc.h"
+
+#define splitnum 4
+#define Length 1024
+
+
+int main (int argc, char * argv[])
+{
+     /* Socket Descriptors */
+     
+     int newsocket1,newsocket2,newsocket3,newsocket4;
+     char sendbuff[Length];
+     struct sockaddr_in serverAddr;
+     serverAddr.sin_family = AF_INET;
+     serverAddr.sin_addr.s_addr = INADDR_ANY;
+
+
+   /*  Read from Configuration file Parameters */ 
+     char *dfc_config = "dfc.conf";
+     char username[] = "\0", password[] = "\0"; 
+     int port[3],i;
+     char * file_parse;
+     char config_buff[128]; 
+     FILE *fp1;
+
+
+     fp1 = fopen(dfc_config,"r");
+     i = 0;
+     while (fgets(config_buff,128,fp1) != NULL)
+     {
+		file_parse = strstr(config_buff,":");
+		file_parse = file_parse + 1;
+		if (i==0) port[i] = atoi(file_parse);
+		if (i==1) port[i] = atoi(file_parse);
+		if (i==2) port[i] = atoi(file_parse);
+		if (i==3) port[i] = atoi(file_parse);
+		if (i==4) strcpy(username,file_parse);
+		if (i==5) {strcpy(password,file_parse); break;}
+		i++;
+	
+     }
+	
+     
+     /*----------- DFS1 ----------------*/
+    
+     serverAddr.sin_port = htons(port[0]);
+     newsocket1 = socket(AF_INET, SOCK_STREAM, 0);
+     if (newsocket1 == -1)
+		printf("Error Creating Socket");
+	
+	if (connect(newsocket1, (struct sockaddr*) &serverAddr, sizeof(serverAddr)) <0)
+     {
+        	printf("Error Connecting\n");
+	//exit(0);
+     }
+     
+	/*----------- DFS2 -----------------*/
+ 	serverAddr.sin_port = htons(port[1]);
+	newsocket2 = socket(AF_INET, SOCK_STREAM, 0);
+	
+	if (newsocket2 == -1)
+		printf("Error Creating Socket");
+		
+	if (connect(newsocket2, (struct sockaddr*) &serverAddr, sizeof(serverAddr)) <0)
+	{
+		printf("Error Connecting\n");
+		//exit(0);
+	}
+	
+	/*----------- DFS3 -----------------*/
+	serverAddr.sin_port = htons(port[2]);
+	newsocket3 = socket(AF_INET, SOCK_STREAM, 0);
+	
+	if (newsocket3 == -1)
+		printf("Error Creating Socket");
+		
+	if (connect(newsocket3, (struct sockaddr*) &serverAddr, sizeof(serverAddr)) <0)
+	{
+		printf("Error Connecting\n");
+		//exit(0);
+	}
+	
+	/*----------- DFS4 -----------------*/
+	serverAddr.sin_port = htons(port[3]);
+	newsocket4 = socket(AF_INET, SOCK_STREAM, 0);
+	
+	if (newsocket4 == -1)
+		printf("Error Creating Socket");
+		
+	if (connect(newsocket4, (struct sockaddr*) &serverAddr, sizeof(serverAddr)) <0)
+	{
+		printf("Error Connecting\n");
+		//exit(0);
+	}
+
+
+	
+		
+	int mod,size,sizeby4;
+	char in_buffer[Length] = "\0";
+	char filename[Length] = "\0" ;
+	char filename1 [Length] = "\0";
+	char filename2 [Length] = "\0";
+	char filename3 [Length] = "\0";
+	char filename4 [Length] = "\0";
+	char stdin_buff[Length] = "\0";
+    	char req_method[Length] = "\0";
+	//char *filename = "server.txt";
+	FILE *fp;
+	char cmd [Length]= "\0";
+	
+	
+
+			
+	//printf("Username:%s\nPassword:%s",username,password);
+		
+
+	//mod = md5_modcalc();
+	
+	fgets(in_buffer,sizeof in_buffer, stdin);
+	
+	in_buffer[strlen(in_buffer)-1] = '\0';	
+	strncpy(req_method,in_buffer,4);
+
+	if (!strcmp(req_method,"GET ") || !strcmp(req_method,"PUT "))
+		{
+		req_method[3] = '\0';
+		
+		}
+	
+	//printf("Request Method:%s\n",req_method);
+	
+	char *req = strstr(in_buffer, " ");
+	req = req+1;
+	strncpy(filename,req,strlen(req));
+	
+	//printf("Filename:%s\n", filename);
+	
+	
+	fp = fopen(filename, "r");
+	
+	fseek(fp, 0L, SEEK_END);
+	size = ftell(fp);
+	fseek(fp, 0L, SEEK_SET);
+	sizeby4 = size/4+1;
+	//printf("\n%d",sizeby4);
+					
+	sprintf(cmd,"split -b %d -d -a 1 %s",sizeby4,filename);
+	//printf("%s\n",cmd);
+	system(cmd);
+	int var =0;
+	
+	while (var<4)
+	{
+		sprintf(cmd,"cp x%d %s.%d",var,filename,var+1);
+		//printf("CMD:%s\n",cmd);
+		system(cmd);
+		sprintf(cmd,"rm x%d",var);
+		system(cmd);
+		var++;
+		
+	}
+	
+	sprintf(filename1, "%s.1",filename);
+	sprintf(filename2, "%s.2",filename);
+	sprintf(filename3, "%s.3",filename);
+	sprintf(filename4, "%s.4",filename);
+	
+	
+	
+	
+	printf("filename1:%s\n\n", filename1);	
+	write(newsocket1,filename1,strlen(filename1));	
+	
+	FILE *fp2 = fopen(filename1,"rb");
+	
+	if (fp2 == NULL)
+		printf("Cannot open File");
+		
+	
+	bzero(sendbuff,Length);
+	int fs_block_sz;
+	
+	while (( fs_block_sz = fread(sendbuff, sizeof (char), Length, fp2))>0)
+		{
+			if (send(newsocket1, sendbuff, fs_block_sz, 0) <0)
+			{
+				printf("Error in sending the file");
+				break;
+			}
+		}
+
+
+
+	printf("filename2:%s\n\n", filename2);
+	write(newsocket2,filename2,strlen(filename2));	
+	
+	FILE *fp3 = fopen(filename2,"rb");
+	
+	if (fp3 == NULL)
+		printf("Cannot open File");
+		
+	
+	bzero(sendbuff,Length);
+	//int fs_block_sz;
+	
+	while (( fs_block_sz = fread(sendbuff, sizeof (char), Length, fp3))>0)
+		{
+			if (send(newsocket2, sendbuff, fs_block_sz, 0) <0)
+			{
+				printf("Error in sending the file");
+				break;
+			}
+		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+	
+
+
+
+
+	return 0;
+
+}
